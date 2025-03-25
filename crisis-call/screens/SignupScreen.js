@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Picker, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { SelectList } from 'react-native-dropdown-select-list';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -9,13 +10,18 @@ export default function SignupScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('user');
 
+  const roles = [
+    { key: 'user', value: 'User' },
+    { key: 'hospital', value: 'Hospital' },
+    { key: 'mechanic', value: 'Mechanic' },
+    { key: 'admin', value: 'Admin' },
+  ];
+
   const handleSignup = async () => {
     try {
-      // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Store user role in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
         role: role,
@@ -48,16 +54,14 @@ export default function SignupScreen({ navigation }) {
         secureTextEntry
       />
       <Text>Select Role:</Text>
-      <Picker
-        selectedValue={role}
-        style={styles.picker}
-        onValueChange={(itemValue) => setRole(itemValue)}
-      >
-        <Picker.Item label="User" value="user" />
-        <Picker.Item label="Hospital" value="hospital" />
-        <Picker.Item label="Mechanic" value="mechanic" />
-        <Picker.Item label="Admin" value="admin" />
-      </Picker>
+      <SelectList
+        setSelected={(val) => setRole(val)}
+        data={roles}
+        save="key"
+        placeholder="Select Role"
+        boxStyles={styles.pickerContainer}
+        dropdownStyles={styles.dropdown}
+      />
       <Button title="Sign Up" onPress={handleSignup} />
       <Button
         title="Already have an account? Login"
@@ -71,5 +75,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 20 },
   title: { fontSize: 24, marginBottom: 20, textAlign: 'center' },
   input: { borderWidth: 1, padding: 10, marginBottom: 10, borderRadius: 5 },
-  picker: { height: 50, width: '100%', marginBottom: 20 },
+  pickerContainer: { borderWidth: 1, padding: 5, marginBottom: 10, borderRadius: 5 },
+  dropdown: { borderWidth: 1, borderRadius: 5 },
 });
